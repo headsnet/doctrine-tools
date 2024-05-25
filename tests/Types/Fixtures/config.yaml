@@ -1,0 +1,13 @@
+
+headsnet_doctrine_tools:
+  root_namespace: Headsnet\DoctrineToolsBundle
+  custom_types:
+    scan_dirs:
+      - './tests/Types/Fixtures'
+  carbon_mappings:
+    enabled: false
+  custom_mappings:
+    scan_dirs: []
+
+parameters:
+  doctrine.dbal.connection_factory.types: []

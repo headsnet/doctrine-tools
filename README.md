@@ -27,8 +27,73 @@ return [
 
 ## Features
 
+- [Dynamically Create Types For Standard Objects](#dynamically-create-types-for-standard-objects)
 - [Auto-Register Custom Doctrine Type Mappings](#auto-register-custom-doctrine-type-mappings)
 - [Auto-Register Carbon Doctrine Type Mappings](#auto-register-carbon-datetime-type-mappings)
+
+### Dynamically Create Types For Standard Objects
+
+Applying the `#[DoctrineType]` attribute to a class will generate a Doctrine mapping type for the object and register 
+it in the application. To configure this behaviour, you must specify where to look for the classes to auto-register.
+
+```yaml
+headsnet_doctrine_tools:
+  root_namespace: Headsnet\DoctrineToolsBundle
+  custom_types:
+    scan_dirs:
+      - 'src/' # the default value
+```
+
+Currently the bundle supports the following standard types:
+
+- `string` via `AbstractStringMappingType`
+- `integer` via `AbstractIntegerMappingType`
+- `uuid` via `AbstractUuidMappingType`
+
+For example, we have a string backed value object:
+
+```php
+namespace App\Domain\Model;
+
+use Headsnet\DoctrineToolsBundle\Attribute\DoctrineType;
+
+#[DoctrineType(name: 'person_name', type: 'string')]
+class PersonName
+{
+    public function __construct(
+        private readonly string $value
+    ) {
+    }
+
+    public static function create(string $value): self
+    {
+        return new self($value);
+    }
+
+    public function asString(): string
+    {
+        return $this->value;
+    }
+}
+```
+
+This will cause a PHP file to be generated that provides the Doctrine Mapping Type for the class - something like:
+
+```php
+class PersonNameType extends \Headsnet\DoctrineToolsBundle\Types\StandardTypes\AbstractStringMappingType {
+    public function getName(): string
+    {
+        return 'person_name';
+    }
+
+    public function getClass(): string
+    {
+        return 'App\Domain\Model\PersonName';
+    }
+}
+```
+
+This file is created in `src/_generated/` - you will want to add this directory to your `.gitignore` file.
 
 ### Auto-Register Custom Doctrine Type Mappings
 
@@ -48,6 +113,7 @@ Then add the `#[DoctrineTypeMapping]` attribute to the custom type class:
 
 ```php
 use Doctrine\DBAL\Types\Type;
+use Headsnet\DoctrineToolsBundle\Attribute\DoctrineMappingType;
 
 #[DoctrineTypeMapping]
 final class ReservationIdType extends Type

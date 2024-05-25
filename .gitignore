@@ -1,3 +1,4 @@
 composer.lock
+src/_generated
 var/
 vendor/
